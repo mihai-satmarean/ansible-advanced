@@ -21,7 +21,6 @@ This lab environment provides hands-on exercises and practical implementations f
 - **Module 6**: Templating with Jinja2 - Dynamic configuration generation
 - **Module 7**: Ansible Pull - Pull-based automation strategies
 - **Module 8**: Delegation - Cross-host task execution
-- **Module 9**: Ansible Galaxy - Community roles and collections
 
 ## Prerequisites
 
@@ -40,7 +39,7 @@ This lab environment provides hands-on exercises and practical implementations f
 
 2. Navigate to the lab environment:
    ```bash
-   cd lab-environment
+   cd ansible-advanced
    ```
 
 3. Follow the specific lab instructions for each module
