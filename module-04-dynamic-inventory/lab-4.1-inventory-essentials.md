@@ -436,17 +436,6 @@ EOF
 - Log errors appropriately
 - Make scripts configurable
 
-## Discussion Points
-
-### For Alexandra & Gabriela (Beginners):
-- "How would dynamic inventory help with your current infrastructure?"
-- "What data sources do you currently manage manually?"
-- "When would you choose dynamic over static inventory?"
-
-### For Victor & Vlad (Intermediate):
-- "How do you handle dynamic inventory in your CI/CD pipelines?"
-- "What's your strategy for inventory caching and performance?"
-- "How do you integrate with Azure DevOps and cloud resources?"
 
 ## Common Use Cases
 

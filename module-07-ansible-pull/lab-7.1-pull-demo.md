@@ -296,20 +296,6 @@ sudo systemctl start ansible-pull.timer
 EOF
 ```
 
-## Q&A and Best Practices Discussion (5 minutes)
-
-### Discussion Points for Participants:
-
-**For Alexandra & Gabriela (Beginners):**
-1. "When might you prefer pull over push in a simple web application setup?"
-2. "What are the main advantages of each approach?"
-3. "How does this relate to your current deployment processes?"
-
-**For Victor & Vlad (Intermediate):**
-1. "How could ansible-pull fit into your CI/CD pipelines?"
-2. "What security considerations are important for pull-based automation?"
-3. "How would you handle secrets and sensitive data with ansible-pull?"
-
 ### Best Practices Summary:
 
 **Security:**

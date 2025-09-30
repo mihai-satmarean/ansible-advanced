@@ -482,18 +482,6 @@ EOF
 - **Blocks**: Grouping related tasks with error handling
 - **Facts**: System information for conditional logic
 
-## Discussion Points
-
-### For Alexandra & Gabriela (Beginners):
-- "Which concepts are new vs. familiar from your experience?"
-- "What automation tasks would benefit from these patterns?"
-- "How would you organize a simple web application deployment?"
-
-### For Victor & Vlad (Intermediate):
-- "How do these concepts fit into your current CI/CD workflows?"
-- "What advanced patterns do you use beyond these fundamentals?"
-- "How do you handle complex multi-environment deployments?"
-
 ## Demo Cleanup
 ```bash
 # Clean up demo files

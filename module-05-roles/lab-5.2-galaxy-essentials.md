@@ -317,18 +317,6 @@ EOF
 - Proprietary software
 - Highly customized configurations
 
-## Discussion Points
-
-### For Alexandra & Gabriela (Beginners):
-- "What types of roles would be useful for your projects?"
-- "How do you evaluate if a Galaxy role is trustworthy?"
-- "What's the difference between installing globally vs. locally?"
-
-### For Victor & Vlad (Intermediate):
-- "How do you manage role versions in your CI/CD pipelines?"
-- "Do you use private Galaxy servers in your organization?"
-- "What's your strategy for role security and compliance?"
-
 ## Common Galaxy Commands Reference
 
 ```bash

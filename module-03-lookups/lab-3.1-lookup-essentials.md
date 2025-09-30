@@ -442,18 +442,6 @@ EOF
 - **System integration** - OS commands, network queries
 - **Data transformation** - Processing external formats
 
-## Discussion Points
-
-### For Alexandra & Gabriela (Beginners):
-- "How would lookups help with your configuration management?"
-- "What external data sources do you currently use manually?"
-- "When would you use file lookup vs. environment lookup?"
-
-### For Victor & Vlad (Intermediate):
-- "How do you handle sensitive data in lookups?"
-- "What's your strategy for lookup error handling?"
-- "How do you integrate lookups with CI/CD pipelines?"
-
 ## Demo Cleanup
 ```bash
 # Clean up demo files

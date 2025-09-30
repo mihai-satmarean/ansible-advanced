@@ -342,17 +342,6 @@ EOF
 - Use handlers for service management
 - Test roles independently
 
-## Discussion Points
-
-### For Alexandra & Gabriela (Beginners):
-- "How would roles help organize your playbooks?"
-- "What's the difference between tasks and roles?"
-- "When would you create a new role vs. adding tasks to a playbook?"
-
-### For Victor & Vlad (Intermediate):
-- "How do you structure roles in your CI/CD pipelines?"
-- "What's your strategy for role versioning and distribution?"
-- "How do you handle role dependencies in complex deployments?"
 
 ## Demo Cleanup
 ```bash

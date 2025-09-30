@@ -318,17 +318,6 @@ EOF
 - Test templates with different data sets
 - Comment complex logic
 
-## Discussion Points
-
-### For Alexandra & Gabriela (Beginners):
-- "How would you use this for a simple web application configuration?"
-- "What's the difference between variables and filters?"
-- "When would you use loops in templates?"
-
-### For Victor & Vlad (Intermediate):
-- "How does this integrate with your CI/CD pipelines?"
-- "What complex configurations could benefit from templating?"
-- "How do you handle sensitive data in templates?"
 
 ## Demo Cleanup
 ```bash

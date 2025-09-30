@@ -724,18 +724,115 @@ cat /etc/ansible/facts.d/weather_service.fact
 
 # Test custom facts in Ansible
 ansible all -i hosts.yml -m setup -a "filter=ansible_local"
+
+# Test only weather service custom facts
+ansible all -i hosts.yml -m setup -a "filter=ansible_local.weather_service"
 ```
 
-The custom facts will be available as `ansible_local.weather_service.*`:
+#### Manual Custom Facts Testing
+Create a simple test playbook `test-custom-facts.yml`:
 ```yaml
-- debug:
-    msg: |
-      Custom Facts:
-      - Environment: {{ ansible_local.weather_service.environment }}
-      - City: {{ ansible_local.weather_service.city }}
-      - Deployment Time: {{ ansible_local.weather_service.deployment_time }}
-      - Service Version: {{ ansible_local.weather_service.service_version }}
+---
+- name: Test Custom Facts Only
+  hosts: all
+  gather_facts: yes
+  
+  tasks:
+    - name: Check if custom facts file exists
+      stat:
+        path: /etc/ansible/facts.d/weather_service.fact
+      register: facts_file
+      
+    - name: Display facts file status
+      debug:
+        msg: |
+          Custom facts file status:
+          - Path: /etc/ansible/facts.d/weather_service.fact
+          - Exists: {{ facts_file.stat.exists }}
+          - Size: {{ facts_file.stat.size | default('N/A') }}
+          - Mode: {{ facts_file.stat.mode | default('N/A') }}
+      
+    - name: Show facts file content if exists
+      command: cat /etc/ansible/facts.d/weather_service.fact
+      register: facts_content
+      when: facts_file.stat.exists
+      
+    - name: Display facts file content
+      debug:
+        msg: "Facts file content: {{ facts_content.stdout }}"
+      when: facts_file.stat.exists
+      
+    - name: Force refresh facts
+      setup:
+        fact_path: /etc/ansible/facts.d
+      
+    - name: Display all custom facts after refresh
+      debug:
+        var: ansible_local
+      when: ansible_local is defined
+      
+    - name: Display weather service custom facts
+      debug:
+        msg: |
+          Weather Service Custom Facts:
+          - Environment: {{ ansible_local.weather_service.environment }}
+          - City: {{ ansible_local.weather_service.city }}
+          - Deployment Time: {{ ansible_local.weather_service.deployment_time }}
+          - Service Version: {{ ansible_local.weather_service.service_version }}
+          - Server Hostname: {{ ansible_local.weather_service.server_hostname }}
+          - Server IP: {{ ansible_local.weather_service.server_ip }}
+          - Weather Temperature: {{ ansible_local.weather_service.weather_temperature }}
+          - Weather Condition: {{ ansible_local.weather_service.weather_condition }}
+      when: ansible_local.weather_service is defined
+      
+    - name: Custom facts not found
+      debug:
+        msg: "Custom facts not available. Make sure the role has been deployed with custom facts enabled."
+      when: ansible_local.weather_service is not defined
 ```
+
+Run the test:
+```bash
+ansible-playbook test-custom-facts.yml -i hosts.yml
+```
+
+#### Debugging Custom Facts Issues
+
+If custom facts are not working, check these steps:
+
+1. **Verify the custom facts task is enabled in the role:**
+   ```bash
+   # Check if the task is uncommented in tasks/main.yml
+   grep -A 3 "Setup custom facts" roles/weather-service/tasks/main.yml
+   ```
+
+2. **Manual verification on target hosts:**
+   ```bash
+   # SSH to target host and check
+   ssh ubuntu@<host_ip>
+   
+   # Check if directory exists
+   ls -la /etc/ansible/facts.d/
+   
+   # Check if file exists and content
+   cat /etc/ansible/facts.d/weather_service.fact
+   
+   # Test JSON validity
+   python3 -m json.tool /etc/ansible/facts.d/weather_service.fact
+   ```
+
+3. **Force facts refresh:**
+   ```bash
+   # Clear facts cache and re-gather
+   ansible all -i hosts.yml -m meta -a "clear_facts"
+   ansible all -i hosts.yml -m setup -a "fact_path=/etc/ansible/facts.d"
+   ```
+
+4. **Check if custom facts task was executed:**
+   ```bash
+   # Run only the role with verbose output
+   ansible-playbook deploy-role.yml -i hosts.yml -v --tags facts
+   ```
 
 ### Testing and Validation
 Create `test-role.yml`:
@@ -776,6 +873,38 @@ Create `test-role.yml`:
           - "ansible_hostname in weather_response.content"
         fail_msg: "Weather service validation failed"
         success_msg: "Weather service validation passed"
+    
+    - name: Test custom facts are available
+      debug:
+        msg: |
+          Custom Facts Test:
+          - Environment: {{ ansible_local.weather_service.environment | default('NOT FOUND') }}
+          - City: {{ ansible_local.weather_service.city | default('NOT FOUND') }}
+          - Deployment Time: {{ ansible_local.weather_service.deployment_time | default('NOT FOUND') }}
+          - Service Version: {{ ansible_local.weather_service.service_version | default('NOT FOUND') }}
+          - Server Hostname: {{ ansible_local.weather_service.server_hostname | default('NOT FOUND') }}
+          - Server IP: {{ ansible_local.weather_service.server_ip | default('NOT FOUND') }}
+      when: ansible_local.weather_service is defined
+      
+    - name: Verify custom facts are properly set
+      assert:
+        that:
+          - ansible_local.weather_service is defined
+          - ansible_local.weather_service.environment is defined
+          - ansible_local.weather_service.city is defined
+          - ansible_local.weather_service.service_version == "1.0.0"
+          - ansible_local.weather_service.server_hostname == ansible_hostname
+        fail_msg: "Custom facts validation failed"
+        success_msg: "Custom facts validation passed"
+      when: ansible_local.weather_service is defined
+      
+    - name: Warning if custom facts not available
+      debug:
+        msg: |
+          WARNING: Custom facts not available!
+          This means the custom facts task was not executed or failed.
+          Check if 'Setup custom facts' task is uncommented in the role.
+      when: ansible_local.weather_service is not defined
 ```
 
 ---

@@ -204,9 +204,6 @@ ls /tmp/local-* /tmp/remote-*
    - Centralize configuration management
    - Enable zero-downtime deployments
 
-### Real-World Scenarios Discussion:
-- **Alexandra & Gabriela**: "How would you use this in a simple web application setup?"
-- **Victor & Vlad**: "How does this fit with CI/CD pipelines and dynamic inventory?"
 
 ## Key Takeaways (Summary)
 
@@ -249,4 +246,3 @@ rm -f demo-inventory.ini demo-basic-delegation.yml
 
 ---
 
-**Note for Instructor**: This demo is designed to be interactive. Encourage questions throughout and adapt examples based on participant experience levels. For Alexandra & Gabriela, focus on concepts and simple examples. For Victor & Vlad, discuss integration with their existing automation workflows.

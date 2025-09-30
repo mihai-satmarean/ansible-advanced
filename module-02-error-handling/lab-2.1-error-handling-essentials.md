@@ -526,18 +526,6 @@ EOF
 - **assert**: Input validation and prerequisites
 - **fail**: Explicit failure with clear messaging
 
-## Discussion Points
-
-### For Alexandra & Gabriela (Beginners):
-- "How would error handling help with your deployment processes?"
-- "What operations in your environment might fail and need handling?"
-- "When would you use ignore_errors vs block/rescue?"
-
-### For Victor & Vlad (Intermediate):
-- "How do you handle errors in your CI/CD pipelines?"
-- "What's your strategy for rollback and recovery?"
-- "How do you balance automation resilience with failure visibility?"
-
 ## Demo Cleanup
 ```bash
 # Clean up demo files
