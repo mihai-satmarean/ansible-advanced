@@ -61,6 +61,10 @@ cat > basic-review.yml << 'EOF'
           Hostname: {{ ansible_hostname }}
           OS: {{ ansible_os_family }}
           Python: {{ ansible_python_version }}
+          Task var: {{ var_from_this_task }}
+      vars:
+        var_from_this_task: "Ansble advanced 2025"
+         
     
     - name: Create directory structure
       file:
