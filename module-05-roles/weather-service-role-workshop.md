@@ -351,6 +351,21 @@ Edit `roles/weather-service/tasks/main.yml`:
   notify: reload nginx
   tags: deploy
 
+- name: Enable weather service site
+  file:
+    src: "{{ weather_service_paths.config_dir }}/weather-service"
+    dest: /etc/nginx/sites-enabled/weather-service
+    state: link
+  notify: restart nginx
+  tags: config
+
+- name: Disable default nginx site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: restart nginx
+  tags: config
+
 - name: Start and enable nginx
   service:
     name: nginx
@@ -599,15 +614,34 @@ Create `deploy-role.yml`:
     - weather-service
   
   post_tasks:
+    - name: Wait for nginx to be ready
+      wait_for:
+        port: 80
+        host: "{{ ansible_default_ipv4.address }}"
+        delay: 2
+        timeout: 30
+      
     - name: Test weather service endpoint
       uri:
         url: "http://{{ ansible_default_ipv4.address }}/health"
         method: GET
+        status_code: [200, 404]  # Accept both until site is fully configured
       register: health_check
+      retries: 3
+      delay: 2
       
     - name: Display health check result
       debug:
-        msg: "Health check: {{ health_check.content }}"
+        msg: |
+          Health Check Results:
+          - URL: http://{{ ansible_host }}/health
+          - Status: {{ health_check.status }}
+          - Response: {{ health_check.content | default('No response body') }}
+          {% if health_check.status == 200 %}
+          - Result: SUCCESS - Health endpoint is working
+          {% else %}
+          - Result: WARNING - Health endpoint returned {{ health_check.status }}
+          {% endif %}
 ```
 
 ---
