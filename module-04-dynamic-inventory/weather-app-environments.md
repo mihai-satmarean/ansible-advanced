@@ -66,19 +66,12 @@ all:
       hosts:
         host2:
           city_name: "Bucharest"
-          production_weather:
-            temperature: 25
-            condition: "Sunny"
-            humidity: 60
-            wind_speed: 3.2
-            description: "Clear skies with gentle breeze"
-            pressure: 1013
-            visibility: 20
       vars:
         environment: production
         server_role: "web"
         environment_type: "prod"
-        app_color: "#ffffff"
+        weather_api_key: "c0ac323c4eed4a889f272444253009"
+        weather_api_url: "https://api.weatherapi.com/v1/current.json"
     
     # Group all web servers
     webservers:
@@ -93,191 +86,46 @@ Create `templates/weather-app.html.j2`:
 
 ```html
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Dashboard - {{ city_name }}</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, {{ app_color }}, #f0f8ff);
-            min-height: 100vh;
-        }
-        .container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .header {
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 3px solid #3498db;
-            padding-bottom: 15px;
-        }
-        .weather-card {
-            background: linear-gradient(135deg, #74b9ff, #0984e3);
-            color: white;
-            padding: 25px;
-            border-radius: 12px;
-            text-align: center;
-            margin: 20px 0;
-        }
-        .weather-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        .detail-item {
-            background: rgba(255,255,255,0.2);
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-        }
-        .server-info {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-            border-left: 4px solid #3498db;
-        }
-        .env-badge {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            font-weight: bold;
-            {% if environment == 'development' %}
-            background-color: #f39c12;
-            color: white;
-            {% else %}
-            background-color: #27ae60;
-            color: white;
-            {% endif %}
-        }
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #ecf0f1;
-            color: #7f8c8d;
-            font-size: 0.9em;
-        }
-        {% if environment == 'development' %}
-        .dev-notice {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            color: #856404;
-        }
-        {% endif %}
-    </style>
+    <title>Weather Service - {{ city_name }}</title>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🌤️ Weather Dashboard</h1>
-            <p>
-                <span class="env-badge">{{ environment | upper }}</span>
-                Server: {{ ansible_hostname }}
-            </p>
-        </div>
-        
-        <div class="weather-card">
-            <h2>{{ city_name }}</h2>
-            <div id="weather-info">
-                {% if environment == 'development' %}
-                <!-- Mock Weather Data for Development -->
-                <div class="weather-main">
-                    <h3>{{ weather_data.temperature }}°C</h3>
-                    <p>{{ weather_data.condition }}</p>
-                    <p><em>{{ weather_data.description }}</em></p>
-                </div>
-                <div class="weather-details">
-                    <div class="detail-item">
-                        <strong>Humidity</strong><br>
-                        {{ weather_data.humidity }}%
-                    </div>
-                    <div class="detail-item">
-                        <strong>Wind</strong><br>
-                        {{ weather_data.wind_speed }} m/s
-                    </div>
-                    <div class="detail-item">
-                        <strong>Pressure</strong><br>
-                        {{ weather_data.pressure }} hPa
-                    </div>
-                    <div class="detail-item">
-                        <strong>Visibility</strong><br>
-                        {{ weather_data.visibility }} km
-                    </div>
-                </div>
-                {% elif environment == 'production' %}
-                <!-- Static Weather Data for Production -->
-                <div class="weather-main">
-                    <h3>{{ production_weather.temperature }}°C</h3>
-                    <p>{{ production_weather.condition }}</p>
-                    <p><em>{{ production_weather.description }}</em></p>
-                </div>
-                <div class="weather-details">
-                    <div class="detail-item">
-                        <strong>Humidity</strong><br>
-                        {{ production_weather.humidity }}%
-                    </div>
-                    <div class="detail-item">
-                        <strong>Wind</strong><br>
-                        {{ production_weather.wind_speed }} m/s
-                    </div>
-                    <div class="detail-item">
-                        <strong>Pressure</strong><br>
-                        {{ production_weather.pressure }} hPa
-                    </div>
-                    <div class="detail-item">
-                        <strong>Visibility</strong><br>
-                        {{ production_weather.visibility }} km
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-        
-        {% if environment == 'development' %}
-        <div class="dev-notice">
-            <h4>Development Mode</h4>
-            <p>This is mock weather data for {{ city_name }}. In production, real weather data from OpenWeatherMap API will be displayed for {{ city_name }}.</p>
-        </div>
-        {% endif %}
-        
-        <div class="server-info">
-            <h3>Server Information</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div>
-                    <strong>Hostname:</strong> {{ ansible_hostname }}<br>
-                    <strong>IP Address:</strong> {{ ansible_default_ipv4.address }}<br>
-                    <strong>Environment:</strong> {{ environment }}
-                </div>
-                <div>
-                    <strong>OS:</strong> {{ ansible_distribution }} {{ ansible_distribution_version }}<br>
-                    <strong>Architecture:</strong> {{ ansible_architecture }}<br>
-                    <strong>City:</strong> {{ city_name }}
-                </div>
-            </div>
-        </div>
-        
-        <div class="footer">
-            <p>Deployed by Ansible | Environment: {{ environment }} | {{ ansible_date_time.date }}</p>
-            <p>Weather data {% if environment == 'production' %}simulated for {{ city_name }}{% else %}mocked for {{ city_name }}{% endif %}</p>
-            <p><small>Refresh page to see updated deployment time</small></p>
-        </div>
-    </div>
+    <h1>Weather Service</h1>
+    <h2>{{ city_name }} - {{ group_names[0] | upper | default('UNKNOWN') }}</h2>
+    
+    {% if 'development' in group_names %}
+    <!-- Development: Mock Data -->
+    <p><strong>Temperature:</strong> {{ weather_data.temperature }}°C</p>
+    <p><strong>Condition:</strong> {{ weather_data.condition }}</p>
+    <p><strong>Humidity:</strong> {{ weather_data.humidity }}%</p>
+    <p><strong>Wind:</strong> {{ weather_data.wind_speed }} m/s</p>
+    <p><em>{{ weather_data.description }}</em></p>
+    <p><small>[MOCK DATA for development]</small></p>
+    
+    {% elif 'production' in group_names %}
+    <!-- Production: API Data or Mock Fallback -->
+    <p><strong>Temperature:</strong> {{ weather_api_data.temperature }}°C</p>
+    <p><strong>Condition:</strong> {{ weather_api_data.condition }}</p>
+    <p><strong>Humidity:</strong> {{ weather_api_data.humidity }}%</p>
+    <p><strong>Wind:</strong> {{ weather_api_data.wind_speed }} m/s</p>
+    <p><em>{{ weather_api_data.description }}</em></p>
+    {% if 'Mock data' in weather_api_data.description %}
+    <p><small>[MOCK DATA - API key invalid, switched to fallback]</small></p>
+    {% else %}
+    <p><small>[LIVE DATA from WeatherAPI.com]</small></p>
+    {% endif %}
+    {% endif %}
+    
+    <hr>
+    <h3>Server Info</h3>
+    <p><strong>Hostname:</strong> {{ ansible_hostname }}</p>
+    <p><strong>IP:</strong> {{ ansible_default_ipv4.address }}</p>
+    <p><strong>OS:</strong> {{ ansible_distribution }} {{ ansible_distribution_version }}</p>
+    <p><strong>Environment:</strong> {{ group_names[0] | default('unknown') }}</p>
+    
+    <hr>
+    <p><em>Generated: {{ ansible_date_time.iso8601 }}</em></p>
 </body>
 </html>
 ```
@@ -292,13 +140,23 @@ Create `deploy-weather-app.yml`:
   hosts: webservers
   become: yes
   vars:
-    app_name: "Weather Dashboard"
+    app_name: "Weather Service"
     app_version: "1.0.0"
     
   tasks:
-    - name: Install NGINX web server
+    - name: Debug environment variables
+      debug:
+        msg: |
+          Environment: {{ environment | default('NOT_SET') }}
+          City: {{ city_name | default('NOT_SET') }}
+          Group Names: {{ group_names }}
+          Host: {{ inventory_hostname }}
+    
+    - name: Install required packages
       package:
-        name: nginx
+        name: 
+          - nginx
+          - curl
         state: present
         
     - name: Start and enable NGINX
@@ -306,6 +164,40 @@ Create `deploy-weather-app.yml`:
         name: nginx
         state: started
         enabled: yes
+    
+    - name: Handle weather data for production
+      block:
+        - name: Fetch real weather data from API
+          uri:
+            url: "{{ weather_api_url }}?key={{ weather_api_key }}&q={{ city_name }}&aqi=no"
+            method: GET
+            return_content: yes
+          register: weather_response
+          
+        - name: Parse successful API response
+          set_fact:
+            weather_api_data:
+              temperature: "{{ weather_response.json.current.temp_c | round(1) }}"
+              condition: "{{ weather_response.json.current.condition.text }}"
+              humidity: "{{ weather_response.json.current.humidity }}"
+              wind_speed: "{{ weather_response.json.current.wind_kph | float / 3.6 | round(1) }}"
+              description: "{{ weather_response.json.current.condition.text }}"
+              
+      rescue:
+        - name: API call failed - switching to mock data for production
+          debug:
+            msg: "API call failed (invalid key or network error). Using mock data for production environment."
+            
+        - name: Set mock weather data for production (API fallback)
+          set_fact:
+            weather_api_data:
+              temperature: "24"
+              condition: "Clear Sky"
+              humidity: "58"
+              wind_speed: "2.8"
+              description: "Mock data (API key invalid)"
+              
+      when: "'production' in group_names"
         
     - name: Deploy environment-specific weather app
       template:
@@ -321,14 +213,14 @@ Create `deploy-weather-app.yml`:
       debug:
         msg: |
           =================================
-          Weather App Deployment Summary
+          Weather Service Deployment
           =================================
-          Environment: {{ environment }}
+          Environment: {{ environment | default(group_names[0] | default('unknown')) }}
           City: {{ city_name }}
           Server: {{ ansible_hostname }}
           IP: {{ ansible_default_ipv4.address }}
           App URL: http://{{ ansible_host }}
-          Weather Data: {% if environment == 'production' %}Static ({{ production_weather.condition }}){% elif environment == 'development' %}Mock ({{ weather_data.condition }}){% else %}Unknown{% endif %}
+          Weather Data: {% if 'production' in group_names %}{% if 'Mock data' in weather_api_data.description %}Mock Fallback ({{ weather_api_data.condition }}){% else %}Live API ({{ weather_api_data.condition }}){% endif %}{% elif 'development' in group_names %}Mock ({{ weather_data.condition }}){% else %}Unknown{% endif %}
           Template Changed: {{ app_deploy.changed }}
           =================================
 ```
@@ -347,14 +239,14 @@ curl http://13.51.178.222/
 
 **Expected Result:**
 - Mock weather data for Busteni
-- Development environment badge (orange)
+- Simple HTML without CSS styling
 - Mountain weather conditions (18°C, Mountain Fresh)
-- Light blue background
+- "[MOCK DATA for development]" indicator
 
 ### Exercise 2: Deploy to Production Environment
 
 ```bash
-# Deploy to production (Bucharest with static data)
+# Deploy to production (Bucharest with real API data)
 ansible-playbook -i hosts.yml deploy-weather-app.yml --limit production
 
 # Check the result
@@ -362,10 +254,10 @@ curl http://16.16.202.25/
 ```
 
 **Expected Result:**
-- Static weather data for Bucharest
-- Production environment badge (green)
-- Sunny conditions (25°C, Clear skies)
-- White background
+- Real weather data for Bucharest from WeatherAPI.com
+- Simple HTML without CSS styling
+- Live weather conditions (temperature varies)
+- "[LIVE DATA from WeatherAPI.com]" indicator
 
 ### Exercise 3: Deploy to Both Environments
 
@@ -374,27 +266,30 @@ curl http://16.16.202.25/
 ansible-playbook -i hosts.yml deploy-weather-app.yml
 
 # Compare the results
-echo "=== Development (Busteni) ==="
-curl -s http://13.51.178.222/ | grep -A 5 "weather-main"
+echo "=== Development (Busteni - Mock Data) ==="
+curl -s http://13.51.178.222/ | grep -E "(Temperature|Condition|MOCK)"
 
-echo "=== Production (Bucharest) ==="
-curl -s http://16.16.202.25/ | grep -A 5 "weather-main"
+echo "=== Production (Bucharest - Live API) ==="
+curl -s http://16.16.202.25/ | grep -E "(Temperature|Condition|LIVE)"
 ```
 
-### Exercise 4: Verify Environment Differences
+### Exercise 4: Verify API Integration
 
 ```bash
-# Check development server
+# Check development server (mock data)
 echo "Development Environment:"
-echo "- City: Busteni (mock data)"
-echo "- Color scheme: Light blue"
+echo "- City: Busteni"
+echo "- Data Source: Mock/Static values"
 echo "- Weather: 18°C, Mountain Fresh"
 
-# Check production server  
+# Check production server (live API)
 echo "Production Environment:"
-echo "- City: Bucharest (static data)"
-echo "- Color scheme: White"
-echo "- Weather: 25°C, Sunny"
+echo "- City: Bucharest"
+echo "- Data Source: WeatherAPI.com"
+echo "- Weather: Live data (varies)"
+
+# Test API call manually (correct format)
+curl -s "https://api.weatherapi.com/v1/current.json?key=c0ac323c4eed4a889f272444253009&q=Bucharest&aqi=no" | python3 -m json.tool
 ```
 
 ## Environment Comparison
@@ -402,21 +297,139 @@ echo "- Weather: 25°C, Sunny"
 | Aspect | Development (host1: 13.51.178.222) | Production (host2: 16.16.202.25) |
 |--------|-------------------------------------|-----------------------------------|
 | City | Busteni | Bucharest |
-| Weather Data | Mock (18°C, Mountain Fresh) | Static (25°C, Sunny) |
-| Background Color | Light Blue (#e8f4f8) | White (#ffffff) |
-| Badge Color | Orange (DEV) | Green (PROD) |
-| Data Update | Manual refresh only | Manual refresh only |
-| Complexity | Simple static template | Simple static template |
+| Weather Data | Mock (18°C, Mountain Fresh) | Live API (WeatherAPI.com) |
+| Data Source | Static variables in inventory | Real-time API call during deployment |
+| API Token | Not used | c0ac323c4eed4a889f272444253009 |
+| Template | Simple HTML, no CSS | Simple HTML, no CSS |
+| Data Freshness | Static at deployment time | Live at deployment time |
+| Dependencies | None | Internet connection + API |
 
 ## Key Learning Points
 
-1. **Environment-Specific Variables**: Different inventory groups can have different variables
-2. **Conditional Templating**: Use `{% if %}` statements to render different content
-3. **Host-Specific Data**: Each host can have unique configuration data
-4. **Conditional Task Execution**: Tasks can run only on specific environments
-5. **Template Flexibility**: Single template can generate different outputs based on variables
+1. **Environment-Specific Variables**: Different inventory groups can have different variables and API configurations
+2. **Conditional Templating**: Use `{% if %}` statements to render different content based on environment
+3. **API Integration**: Use `uri` module to fetch real-time data from external APIs during deployment
+4. **Conditional Task Execution**: Tasks can run only on specific environments (`when: environment == 'production'`)
+5. **Data Parsing**: Use `set_fact` to parse JSON responses and create structured data
+6. **Template Simplicity**: Simple HTML templates without CSS for better maintainability
+7. **Real vs Mock Data**: Development uses static mock data, production fetches live API data
+8. **API Call Methods**: WeatherAPI.com uses query parameters, not form data in request body
+9. **Error Handling**: Block/rescue pattern provides graceful fallback when external APIs fail
 
+## API Integration Benefits
+
+- **Development**: Fast deployment with predictable mock data
+- **Production**: Real-time weather data ensures accuracy
+- **Template Reusability**: Same template works for both environments
+- **Deployment-Time Data**: Fresh data fetched during each deployment
+
+## Troubleshooting
+
+### API Key Issues
+
+If you see "API ERROR - Using fallback data" in production:
+
+1. **Check API Key**: The current key `c0ac323c4eed4a889f272444253009` may be expired
+2. **Get New Key**: Visit https://www.weatherapi.com/ to get a free API key
+3. **Update Inventory**: Replace `weather_api_key` in the production group vars
+4. **Test Manually**:
+   ```bash
+   # Correct WeatherAPI.com format - parameters as query string
+   curl "https://api.weatherapi.com/v1/current.json?key=YOUR_NEW_KEY&q=Bucharest&aqi=no"
+   ```
+
+### Error Handling with Block/Rescue
+
+The playbook uses Ansible's `block/rescue` structure that:
+- **Block**: Attempts to fetch real weather data from API
+- **Rescue**: If API fails (invalid key, network error), automatically switches to mock data
+- **Graceful Degradation**: Production continues with mock data instead of failing
+- **Clear Indicators**: Web page shows "[MOCK DATA - API key invalid, switched to fallback]"
+- **Educational Value**: Demonstrates proper error handling patterns in Ansible
+
+### Block/Rescue Structure
+```yaml
+- name: Handle weather data for production
+  block:
+    - name: Fetch real weather data from API
+      # Try to get real data
+  rescue:
+    - name: Set mock weather data for production (API fallback)
+      # Use mock data if API fails
+  when: "'production' in group_names"
+```
+
+## Architecture Overview
+
+The following diagram illustrates the complete weather service deployment flow:
+
+```mermaid
+graph TD
+    A[Ansible Controller] --> B{Environment Check}
+    B -->|Development| C[Load Mock Data]
+    B -->|Production| D[API Call to WeatherAPI.com]
+    
+    C --> E[Set Development Variables]
+    E --> F[Deploy to host1<br/>13.51.178.222]
+    
+    D --> G{API Response}
+    G -->|Success| H[Parse Live Weather Data]
+    G -->|Failed| I[Fallback to Mock Data]
+    
+    H --> J[Set Production Variables]
+    I --> J
+    J --> K[Deploy to host2<br/>16.16.202.25]
+    
+    F --> L[Install & Configure Nginx]
+    K --> M[Install & Configure Nginx]
+    
+    L --> N[Generate HTML Template<br/>Busteni - Mock Data]
+    M --> O[Generate HTML Template<br/>Bucharest - Live/Fallback Data]
+    
+    N --> P[Development Service<br/>http://13.51.178.222]
+    O --> Q[Production Service<br/>http://16.16.202.25]
+    
+    R[WeatherAPI.com<br/>External Service] -.->|HTTP GET| D
+    
+    style A fill:#e1f5fe,stroke:#01579b,color:#000
+    style B fill:#f3e5f5,stroke:#4a148c,color:#000
+    style C fill:#e8f5e8,stroke:#1b5e20,color:#000
+    style D fill:#fff3e0,stroke:#e65100,color:#000
+    style E fill:#e8f5e8,stroke:#1b5e20,color:#000
+    style F fill:#e8f5e8,stroke:#1b5e20,color:#000
+    style G fill:#f3e5f5,stroke:#4a148c,color:#000
+    style H fill:#fff3e0,stroke:#e65100,color:#000
+    style I fill:#ffebee,stroke:#c62828,color:#000
+    style J fill:#fff3e0,stroke:#e65100,color:#000
+    style K fill:#fff3e0,stroke:#e65100,color:#000
+    style L fill:#e8f5e8,stroke:#1b5e20,color:#000
+    style M fill:#fff3e0,stroke:#e65100,color:#000
+    style N fill:#e8f5e8,stroke:#1b5e20,color:#000
+    style O fill:#fff3e0,stroke:#e65100,color:#000
+    style P fill:#e8f5e8,stroke:#1b5e20,color:#000
+    style Q fill:#fff3e0,stroke:#e65100,color:#000
+    style R fill:#f5f5f5,stroke:#424242,color:#000
+```
+
+### Flow Explanation:
+
+1. **Ansible Controller** initiates the deployment process
+2. **Environment Check** determines whether target is development or production
+3. **Development Path** (green) loads static mock data for Busteni
+4. **Production Path** (orange) attempts live API call to WeatherAPI.com
+5. **Error Handling** (red) provides fallback to mock data if API fails
+6. **Infrastructure Setup** installs and configures Nginx on target hosts
+7. **Template Generation** creates environment-specific HTML content
+8. **Final Services** deliver two functional web endpoints with different data sources
+
+### Color Legend:
+- **Blue**: Ansible Controller and orchestration
+- **Green**: Development environment processes
+- **Orange**: Production environment processes
+- **Purple**: Decision points and conditional logic
+- **Red**: Error handling and fallback mechanisms
+- **Gray**: External services and dependencies
 
 ## Conclusion
 
-This lab demonstrates how Ansible templates can be used to create environment-specific deployments. The same template generates different outputs based on inventory variables, enabling consistent deployment processes across different environments while maintaining environment-specific configurations.
+This lab demonstrates a practical approach to environment-specific deployments where development uses mock data for speed and predictability, while production integrates with real APIs for accurate, live data. The error handling ensures the deployment succeeds even when external dependencies fail, which is crucial for production automation.
