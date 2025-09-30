@@ -312,6 +312,11 @@ Edit `roles/weather-service/tasks/main.yml`:
     - weather_environments[weather_environment].use_api | bool
   tags: config
 
+## uncomment for part 3 of the workshop
+- name: Setup custom facts
+  include_tasks: custom_facts.yml
+  tags: facts
+
 - name: Create weather service directories
   file:
     path: "{{ item }}"
@@ -515,6 +520,9 @@ Create `roles/weather-service/handlers/main.yml`:
   service:
     name: nginx
     state: reloaded
+
+- name: refresh facts
+  setup:
 ```
 
 ### Role Metadata for Galaxy
@@ -662,11 +670,16 @@ Create `roles/weather-service/tasks/custom_facts.yml`:
     state: directory
     mode: '0755'
 
+- name: Remove old weather service custom facts (if exists)
+  file:
+    path: /etc/ansible/facts.d/weather_service.fact
+    state: absent
+
 - name: Deploy weather service custom facts
   template:
     src: weather_facts.fact.j2
     dest: /etc/ansible/facts.d/weather_service.fact
-    mode: '0755'
+    mode: '0644'
   notify: refresh facts
 
 - name: Refresh ansible facts
@@ -675,27 +688,53 @@ Create `roles/weather-service/tasks/custom_facts.yml`:
 ```
 
 Create `roles/weather-service/templates/weather_facts.fact.j2`:
-```bash
-#!/bin/bash
-# Custom facts for weather service
-
-cat << EOF
+```json
 {
-  "environment": "{{ environment }}",
-  "city": "{{ city_name }}",
-  "deployment_time": "$(date -Iseconds)",
+  "environment": "{{ weather_environment }}",
+  "city": "{{ current_weather_data.city_name }}",
+  "deployment_time": "{{ ansible_date_time.iso8601 }}",
   "service_version": "1.0.0",
-  "nginx_status": "$(systemctl is-active nginx)"
+  "server_hostname": "{{ ansible_hostname }}",
+  "server_ip": "{{ ansible_default_ipv4.address }}",
+  "weather_temperature": "{{ current_weather_data.temperature }}",
+  "weather_condition": "{{ current_weather_data.condition }}"
 }
-EOF
 ```
 
-### Include Custom Facts in Main Tasks
-Add to `roles/weather-service/tasks/main.yml`:
+### Cleaning Old Custom Facts (if needed)
+If you encounter "Exec format error", clean old custom facts files:
+
+```bash
+# Remove old custom facts files on all hosts
+ansible all -i hosts.yml -b -m file -a "path=/etc/ansible/facts.d/weather_service.fact state=absent"
+
+# Clear Ansible facts cache (optional)
+ansible all -i hosts.yml -m meta -a "clear_facts"
+```
+
+### Testing Custom Facts
+After deployment, you can verify custom facts are working:
+
+```bash
+# Check if custom facts file exists
+ls -la /etc/ansible/facts.d/weather_service.fact
+
+# View custom facts content
+cat /etc/ansible/facts.d/weather_service.fact
+
+# Test custom facts in Ansible
+ansible all -i hosts.yml -m setup -a "filter=ansible_local"
+```
+
+The custom facts will be available as `ansible_local.weather_service.*`:
 ```yaml
-- name: Setup custom facts
-  include_tasks: custom_facts.yml
-  tags: facts
+- debug:
+    msg: |
+      Custom Facts:
+      - Environment: {{ ansible_local.weather_service.environment }}
+      - City: {{ ansible_local.weather_service.city }}
+      - Deployment Time: {{ ansible_local.weather_service.deployment_time }}
+      - Service Version: {{ ansible_local.weather_service.service_version }}
 ```
 
 ### Testing and Validation
@@ -733,8 +772,8 @@ Create `test-role.yml`:
       assert:
         that:
           - weather_response.status == 200
-          - city_name in weather_response.content
-          - environment in weather_response.content
+          - "'Weather Service' in weather_response.content"
+          - "ansible_hostname in weather_response.content"
         fail_msg: "Weather service validation failed"
         success_msg: "Weather service validation passed"
 ```
@@ -787,16 +826,11 @@ Create `deploy-simple.yml`:
     environment: "{{ weather_environment }}"
   
   tasks:
-    - name: Install nginx
-      package:
-        name: nginx
-        state: present
-        
-    - name: Start nginx
-      service:
-        name: nginx
-        state: started
-        enabled: yes
+    - name: Setup nginx using geerlingguy role
+      include_role:
+        name: geerlingguy.nginx
+      vars:
+        nginx_remove_default_vhost: true
         
     - name: Deploy weather page
       template:
@@ -830,6 +864,10 @@ Create `deploy-simple.yml`:
 ---
 
 
+
+## Architecture Overview
+
+For detailed C4 diagrams illustrating the weather service role architecture at different levels (Context, Container, Component, Code/Dynamic), see: [`weather_service_diagrams.md`](./weather_service_diagrams.md)
 
 ### Architecture Explanation:
 
