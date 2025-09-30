@@ -226,9 +226,8 @@ weather_environments:
     cache_timeout: 3600
     use_api: true
 
-# System requirements
+# System requirements (nginx handled by geerlingguy.nginx role)
 required_packages:
-  - nginx
   - curl
 
 # Service paths
@@ -325,11 +324,21 @@ Edit `roles/weather-service/tasks/main.yml`:
     - "{{ weather_service_paths.log_dir }}"
   tags: setup
 
-- name: Install required packages
+- name: Install required packages (excluding nginx - handled by geerlingguy.nginx)
   package:
-    name: "{{ required_packages }}"
+    name: "{{ item }}"
     state: present
+  loop: "{{ required_packages }}"
+  when: item != 'nginx'
   tags: packages
+
+- name: Include geerlingguy.nginx role for nginx installation and basic setup
+  include_role:
+    name: geerlingguy.nginx
+  vars:
+    nginx_remove_default_vhost: true
+    nginx_vhosts: []
+  tags: nginx
 
 - name: Configure nginx for weather service
   template:
@@ -365,13 +374,6 @@ Edit `roles/weather-service/tasks/main.yml`:
     state: absent
   notify: restart nginx
   tags: config
-
-- name: Start and enable nginx
-  service:
-    name: nginx
-    state: started
-    enabled: yes
-  tags: service
 
 - name: Display deployment summary
   debug:
@@ -827,6 +829,49 @@ Create `deploy-simple.yml`:
 
 ---
 
+
+
+### Architecture Explanation:
+
+#### **System Context Level:**
+- **DevOps Engineer** executes Ansible playbooks to deploy weather services
+- **Ansible Controller** orchestrates the deployment using standardized Galaxy roles
+- **External Dependencies**: WeatherAPI.com for live data, Galaxy for roles, Collections for modules
+- **Dependency Management**: requirements.yml defines and installs external dependencies
+
+#### **Container Level:**
+- **requirements.yml** defines role and collection dependencies for the project
+- **Weather Service Role** contains reusable deployment logic
+- **Development Host** receives mock weather data for testing
+- **Production Host** integrates with live WeatherAPI.com data
+- **Environment Separation** ensures different data sources per environment
+- **Dependency Flow**: requirements.yml → Galaxy/Collections → Local installation
+
+#### **Component Level:**
+- **defaults/**: API keys, default configurations, overridable variables
+- **vars/**: Environment-specific logic, internal role variables
+- **tasks/**: Core deployment logic with API integration and error handling
+- **templates/**: Jinja2 templates for HTML pages and Nginx configuration
+- **handlers/**: Service management (restart/reload Nginx)
+- **meta/**: Galaxy metadata for role publishing and dependencies
+
+#### **Code/Dynamic Level:**
+- **Dependency Installation**: requirements.yml → ansible-galaxy install → Available roles/collections
+- **Execution Flow**: Step-by-step task execution within the role
+- **Data Flow**: How information moves from inventory through API to deployment
+- **Error Handling**: Block/rescue patterns for resilient API integration
+- **Service Lifecycle**: From package installation to site activation
+- **Template Processing**: Dynamic configuration generation based on environment
+
+#### **Key Design Patterns:**
+- **Galaxy Role Structure**: Standardized, reusable, shareable
+- **Environment Abstraction**: Same role, different data sources
+- **Error Resilience**: Block/rescue patterns for API failures
+- **Template-driven Configuration**: Dynamic content generation
+- **Service Lifecycle Management**: Proper handler usage
+
+---
+
 ## Workshop Exercises
 
 ### Exercise 1: Initialize Role with Galaxy (15 minutes)
@@ -970,7 +1015,13 @@ GET https://api.weatherapi.com/v1/current.json?key=YOUR_KEY&q=CITY&aqi=no
    - Integrate external utilities and scripts into playbooks
    - Useful for audit trails, deployment tracking, and dynamic data
 
-4. **Professional Role Structure:**
+4. **External Role Integration:**
+   - `include_role: name: geerlingguy.nginx` demonstrates using community roles
+   - Leverage existing, tested roles instead of reinventing functionality
+   - Pass variables to external roles for customization
+   - Combine multiple roles for complex deployments
+
+5. **Professional Role Structure:**
    - Galaxy-compliant directory organization
    - Proper separation of defaults vs vars
    - Handler usage for service management
